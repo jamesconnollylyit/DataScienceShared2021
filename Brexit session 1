@@ -1,0 +1,121 @@
+# Store file in your working directory
+# and then read into a data frame. 
+
+brexit_data <- read.csv("data_brexit_referendum.csv")
+head(brexit_data)
+
+#What data type is this file?
+class(brexit_data)
+
+# Lets look at the structure of the file
+str(brexit_data)
+
+# --------------------------------------------------------------------------------------
+# Dealing with missing data
+# --------------------------------------------------------------------------------------
+
+# The original data has missing values
+# represented by the number "-1"
+# We need to search for these and replace them
+
+# Check for values in "Leave" column where
+# vlaue = -1
+sum(brexit_data$Leave[brexit_data$Leave == -1])
+
+# replace this with NA
+brexit_data$Leave[brexit_data$Leave == -1] <- NA
+
+# Verify that the replace happened
+sum(brexit_data$Leave[brexit_data$Leave == -1])
+
+# View the records with NA
+na_records <- brexit_data[!complete.cases(brexit_data),]
+na_records
+
+# Same count as when values were -1
+nrow(na_records)
+
+install.packages("mice")
+library(mice)
+# 15 records have missing NI address
+# 10 have missing type
+md.pattern(brexit_data)
+
+library(VIM)
+
+# Looks like the missing values are all in this 1 column
+# for "Leave". We're not going to use it for now
+# so we'll leave it as it is
+missing_values <- aggr(brexit_data, prop = FALSE, numbers = TRUE)
+
+# --------------------------------------------------------------------------------------
+# Describing the brexit data
+# --------------------------------------------------------------------------------------
+
+# Lets look at the proportion of voters who
+# are in favour of leaving the E.U.
+# I'm creating a new variable to store this information in
+# The focus of this dataset is brexit voters and their
+# various attributes
+
+brexit_data$Proportion <- brexit_data$Leave / brexit_data$NVotes
+brexit_data$Proportion
+
+# Store remain or leave in the Vote variable
+brexit_data$Vote[brexit_data$Proportion <= 0.5] <- "Remain"
+brexit_data$Vote[brexit_data$Proportion > 0.5] <- "Leave"
+brexit_data$Vote
+
+attach(brexit_data)
+# Note that we still need to refer to the full path to the variable for
+# part of the statement
+
+# Need to convert to character from factor before we can convert the variable
+
+brexit_data$RegionName <- as.character(RegionName)
+str(brexit_data)
+brexit_data$RegionName[RegionName == "London"] <- "L" # Check that this has happened
+brexit_data$RegionName[RegionName == "North West"] <- "NW" 
+brexit_data$RegionName[RegionName == "North East"] <- "NE" 
+brexit_data$RegionName[RegionName == "South West"] <- "SW" 
+brexit_data$RegionName[RegionName == "South East"] <- "SE" 
+brexit_data$RegionName[RegionName == "East Midlands"] <- "EM" 
+brexit_data$RegionName[RegionName == "West Midlands"] <- "WM" 
+brexit_data$RegionName[RegionName == "East of England"] <- "EE" 
+brexit_data$RegionName[RegionName == "Yorkshire and The Humber"] <- "Y" 
+
+# Now we have a new variable of interest called proportion
+# and we will now focus on this variable
+
+# Lets view the summary of the data
+
+# We can see that this shows relevant summaries of the data
+# and it is tailored for each data type
+summary(brexit_data)
+
+# We're not able to directly reference some of this data because it is non-numeric
+# and does not contain what we want to view such as minimum, first quartile, median, mean, third quartile
+# but we can use sapply() and check whether each data variable is a numeric variable or not
+# eg to check whether proportion is a numeric value or not
+is.numeric(brexit_data$Proportion)
+is.numeric(brexit_data$RegionName)
+
+# Use double-tab for structure of sapply()
+numeric_variable_list <- sapply(brexit_data, is.numeric)
+numeric_variable_list
+
+# We can use this logic to create a subset of the data
+numerical_data <- brexit_data[numeric_variable_list]
+colnames(numerical_data)
+
+# Remove the ID field as it has no meaning
+# from the lookup "numeric_variable_list"
+numeric_variable_list["ID"] <- FALSE
+
+# Then remove this again from the main brexit_data dataset
+numerical_data <- brexit_data[numeric_variable_list]
+colnames(numerical_data)
+
+# We can use the lapply() function to return a named list
+# where each list member has a corresponding name
+lapply(numerical_data, summary)
