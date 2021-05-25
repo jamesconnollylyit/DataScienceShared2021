@@ -53,8 +53,8 @@ pairs.panels(states,
              stars = TRUE,
              ci = TRUE) # If TRUE, adds confidence intervals 
 
-# Independent var = x-axis
-# Depend var = y-axis
+# Dependent var = x-axis
+# Independent var = y-axis
 
 attach(states)
 scatter.smooth(x = Murder, 
@@ -239,5 +239,28 @@ par <- opar
 attach(states)
 mlr_model <- lm(Murder ~ Illiteracy + Population + HS_Grad + Income + Frost, data = states)
 summary(mlr_model)
+
+# Create training and testing data - see notes 
+# on Blackboard for detailed description
+set.seed(1)
+no_rows_data <- nrow(states)
+data_sample <- sample(1: no_rows_data, size = round(0.7 * no_rows_data), replace = FALSE)
+data_sample
+training_data <- states[data_sample, ]
+testing_data <- states[-data_sample, ]
+
+# Build the model based on training data
+model <- lm(Murder ~ Population + Illiteracy + Income + Frost + Life_Exp + HS_Grad, data = training_data)
+summary(model)
+
+confint(model)
+
+
+
+
+
+
+
+
 
 
